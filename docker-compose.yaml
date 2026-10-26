@@ -43,7 +43,7 @@ services:
   # Backend Gestion Employé
   # -------------------------------
   backend-service:
-    image: ditdevops1/backend-employe:1.${BUILD_NUMBER}
+    image: siradia1/backend-employe:1.${BUILD_NUMBER}
     container_name: backend-employe-prod
     ports:
       - "8001:8000"
@@ -58,7 +58,7 @@ services:
   # Frontend React
   # ==========================
   frontend-service:
-    image: ditdevops1/frontend-employe:1.${BUILD_NUMBER}
+    image: siradia1/frontend-employe:1.${BUILD_NUMBER}
     container_name: frontend-employe-prod
     ports:
       - "3000:80"

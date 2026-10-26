@@ -1,41 +1,28 @@
 pipeline {
-    // deploiement ci-cd mono-repoooo
-    // agent any
-
     agent {
-        label 'agent-windows'  
-       
+        label 'agent-windows'
     }
 
     environment {
-        DOCKERHUB_USER = "ditdevops1"
+        DOCKERHUB_USER = "siradia1"
         BACKEND_IMAGE  = "backend-employe"
         FRONTEND_IMAGE = "frontend-employe"
         IMAGE_TAG      = "1.${BUILD_NUMBER}"
     }
 
     stages {
-
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build Backend Image') {
             steps {
-                bat "docker build -t ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG} ./backend"
+                bat 'docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% ./backend'
             }
         }
 
-
-         stage('Build Frontend Image') {
+        stage('Build Frontend Image') {
             steps {
-                bat "docker build -t ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
+                bat 'docker build -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% ./frontend'
             }
         }
 
-   // push images to DockerHub
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
@@ -43,28 +30,34 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    bat """
-                        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    bat '''
+                        @echo off
+                        echo %DOCKER_PASS%| docker login --username %DOCKER_USER% --password-stdin
+                        if errorlevel 1 exit /b 1
+
                         docker push %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+                        if errorlevel 1 exit /b 1
+
                         docker push %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
-                    """
+                        if errorlevel 1 exit /b 1
+                    '''
                 }
             }
         }
-    // stage docker compose
+
         stage('Deploy with Docker Compose') {
             steps {
-                bat "docker-compose up -d --build"
+                bat 'docker compose up -d'
             }
         }
     }
 
     post {
         success {
-            echo "Déploiement Backend et Frontend Gestion employé réussiiiii !"
+            echo 'Build et publication des images réussis !'
         }
         failure {
-            echo "Le déploiement a échoué, vérifiez les logs Jenkinssss."
+            echo 'Échec du pipeline : vérifiez les logs Jenkins.'
         }
     }
 }
